@@ -28,19 +28,19 @@ if __name__ == '__main__':
             print(f'Processing file {i + 1}/{len(files)} -> {file}')
             with open(file, 'r') as f:
                 lines = f.readlines()
-                chemOntLineIndex = -1
-                lastChLinkLineIndex = -1
-                iupacLineIndex = -1
+                chemont_line_index = -1
+                last_chlink_line_index = -1
+                iupac_line_index = -1
                 accession = ""
                 for j, line in enumerate(lines):
                     if line.startswith('ACCESSION:'):
                         accession = line.split(':')[1].strip()
                     elif line.startswith('CH$LINK: ChemOnt'):
-                        chemOntLineIndex = j
+                        chemont_line_index = j
                     elif line.startswith('CH$LINK:'):
-                        lastChLinkLineIndex = j
+                        last_chlink_line_index = j
                     elif line.startswith('CH$IUPAC:'):
-                        iupacLineIndex = j
+                        iupac_line_index = j
                 # print(f'accession: {accession}')
                 # print(f'chemOntLineIndex: {chemOntLineIndex}')
                 # print(f'lastChLinkLineIndex: {lastChLinkLineIndex}')
@@ -70,26 +70,31 @@ if __name__ == '__main__':
                     # print(f'class_name: {class_name}')
                     # print(f'subclass_name: {subclass_name}')
 
-                    mod_line = "CH$LINK: ChemOnt " + chemont_id + "; " + kingdom_name + "; " + superclass_name
-                    if class_name != "":
-                        mod_line += "; " + class_name
-                        if subclass_name != "":
-                            mod_line += "; " + subclass_name
-                    mod_line += "\n"
+                    if chemont_id != "" and kingdom_name != "" and superclass_name != "":
+                        mod_line = "CH$LINK: ChemOnt " + chemont_id + "; " + kingdom_name + "; " + superclass_name
+                        if class_name != "":
+                            mod_line += "; " + class_name
+                            if subclass_name != "":
+                                mod_line += "; " + subclass_name
+                        mod_line += "\n"
 
-                    # check if the ChemOnt line is present
-                    if chemOntLineIndex != -1:                        
-                        lines[chemOntLineIndex] = mod_line
+                        # check if the ChemOnt line is present
+                        if chemont_line_index != -1:                        
+                            lines[chemont_line_index] = mod_line
+                        else:
+                            # check if the last CH$LINK line is present
+                            if last_chlink_line_index != -1:                           
+                                lines.insert(last_chlink_line_index + 1, mod_line)
+                            elif iupac_line_index != -1:                               
+                                lines.insert(iupac_line_index + 1, mod_line)
                     else:
-                        # check if the last CH$LINK line is present
-                        if lastChLinkLineIndex != -1:                           
-                            lines.insert(lastChLinkLineIndex + 1, mod_line)
-                        elif iupacLineIndex != -1:                               
-                            lines.insert(iupacLineIndex + 1, mod_line)
+                        if chemont_line_index != -1:
+                            print(f'Accession {accession} -> no or insufficient classification data -> remove ChemOnt link')
+                            lines.pop(chemont_line_index)                    
                 else:
-                    if chemOntLineIndex != -1:
+                    if chemont_line_index != -1:
                         print(f'Accession {accession} not found in input data -> remove ChemOnt link')
-                        lines.pop(chemOntLineIndex)
+                        lines.pop(chemont_line_index)
 
                 # write the lines back to the file
                 with open(file, 'w') as f:
