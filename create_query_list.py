@@ -1,11 +1,17 @@
 import sys
+import os
 import pandas as pd
 from utils import list_files_recursive
 
 if __name__ == '__main__':
+    print('\n\n--> Starting create_query_list.py ...\n\n')
+
     directory_path = sys.argv[1] 
     files = list_files_recursive(directory_path)
-    output_file = sys.argv[2]
+
+    os.makedirs("results", exist_ok=True)
+
+    output_file = "results/query_list.tsv"
     
     print(f'Processing files in directory: {directory_path}')
     print(f'Total files: {len(files)}')

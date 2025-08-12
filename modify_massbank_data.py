@@ -4,15 +4,17 @@ import shutil
 from utils import list_files_recursive
 
 if __name__ == '__main__':
+    print('\n\n--> Starting modify_massbank_data.py ...\n\n')
+
     src_dir = sys.argv[1] 
     out_dir = "results/" + src_dir
 
-    destination = shutil.copytree(src=src_dir, dst=out_dir, dirs_exist_ok=True)
-    print(destination) 
-    print(f'Copied files from {src_dir} to {out_dir}')
+    print(f'Copying files from {src_dir} to {out_dir}')
+    shutil.copytree(src=src_dir, dst=out_dir, dirs_exist_ok=True)
+    print(f'Copied files!')
 
     files = list_files_recursive(out_dir)        
-    mappings_json = sys.argv[2]
+    mappings_json = "results/mapping.json"
 
     print(f'Total MassBank record files: {len(files)} in directory: {out_dir}')
     print(f'Using mappings from: {mappings_json}')        
@@ -91,7 +93,7 @@ if __name__ == '__main__':
                 # print(f'File {file} updated successfully')     
 
 
-    print(f'\n\n-> Finished updating {len(files)} files in {out_dir}')
+    print(f'\n\n-> Finished updating {len(files)} files in {out_dir}\n\n')
                                 
            
 

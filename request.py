@@ -1,3 +1,4 @@
+import os
 import sys
 import json
 import time
@@ -5,8 +6,10 @@ import pandas as pd
 from utils import get_results, inchi_to_canonical_smiles, smiles_to_inchi_key, structure_query
 
 if __name__ == '__main__':
-    # 1. Determine Input File Type and Load InChIs
-    df = pd.read_csv(sys.argv[1], sep='|', header=None)
+    print('\n\n--> Starting request.py ...\n\n')
+
+    # 1. Read TSV file
+    df = pd.read_csv("results/query_list.tsv", sep='|', header=None)
     
     accessions: list[str] = df.iloc[:, 0].tolist()
     inchis: list[str] = df.iloc[:, 1].tolist()
@@ -42,6 +45,8 @@ if __name__ == '__main__':
     chunk_size = 50
     chunks = [smiles_input_list[i:i + chunk_size] for i in range(0, len(smiles_input_list), chunk_size)]
     print(f'Total chunks: {len(chunks)}')   
+
+    os.makedirs("results/intermediate_results", exist_ok=True)
 
     # 5. Submit each chunk to ClassyFire
     for i, chunk in enumerate(chunks):
