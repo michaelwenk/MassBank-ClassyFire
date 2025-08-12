@@ -1,59 +1,18 @@
 import sys
-import pandas as pd
-import requests
 import json
 import time
-from rdkit import Chem
-
-from rdkit import RDLogger
-
-# Suppress RDKit warnings globally
-RDLogger.DisableLog('rdApp.*')
-
-
-url = "http://classyfire.wishartlab.com"
-
-def structure_query(compound, label='IPB-Halle-ClassyFire'):   
-    payload = {
-        "label": label,
-        "query_input": compound,
-        "query_type": "STRUCTURE"
-    }
-    headers = {"Content-Type": "application/json"}
-    r = requests.post(f"{url}/queries.json", data=json.dumps(payload), headers=headers)
-    r.raise_for_status()
-    return r.json()['id']
-
-def get_results(query_id, return_format="json"):  
-    r = requests.get(f"{url}/queries/{query_id}.{return_format}", headers={"Content-Type": f"application/{return_format}"})
-    r.raise_for_status()
-    return r.text
-
-def smiles_to_canonical_smiles(smiles):
-    mol = Chem.MolFromSmiles(smiles)
-    canonical_smiles = Chem.MolToSmiles(mol, canonical=True)
-
-    return canonical_smiles
-
-def inchi_to_canonical_smiles(inchi):
-    mol = Chem.MolFromInchi(inchi)
-    smiles = Chem.MolToSmiles(mol, canonical=True)
-
-    return smiles
-
-def smiles_to_inchi_key(smiles):
-    mol = Chem.MolFromSmiles(smiles)
-    inchi_key = Chem.InchiToInchiKey(Chem.MolToInchi(mol))
-
-    return inchi_key
-
+import pandas as pd
+from utils import get_results, inchi_to_canonical_smiles, smiles_to_inchi_key, structure_query
 
 if __name__ == '__main__':
     # 1. Determine Input File Type and Load InChIs
     df = pd.read_csv(sys.argv[1], sep='|', header=None)
     
-    accessions = df.iloc[:, 0].tolist()
-    inchis = df.iloc[:, 1].tolist()
+    accessions: list[str] = df.iloc[:, 0].tolist()
+    inchis: list[str] = df.iloc[:, 1].tolist()
+
+    print(f'Total accessions: {len(accessions)}')
+    print(f'Total InChIs: {len(inchis)}')
 
     accessions = [accession.strip() for accession in accessions]
     inchis = [inchi.strip() for inchi in inchis]
@@ -86,7 +45,7 @@ if __name__ == '__main__':
 
     # 5. Submit each chunk to ClassyFire
     for i, chunk in enumerate(chunks):
-        print(f'-> Processing chunk {i + 1}/{len(chunks)}')
+        print(f'\n\n-> Processing chunk {i + 1}/{len(chunks)}')
         compound = '\n'.join(chunk)
         query_id = structure_query(compound)
         print(f'Query ID: {query_id}')
@@ -154,8 +113,7 @@ if __name__ == '__main__':
         accession = accessions[i]
         mapping[accession] = results[inchi_key]
 
-        # plot the results with plotly
-
+    not_found_smiles = list(set(not_found_smiles))  # Remove duplicates
 
             
     print(f'Total SMILES found in results: {len(smiles_input_list) - len(not_found_smiles)} / {len(smiles_input_list)}')    

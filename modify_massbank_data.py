@@ -1,31 +1,28 @@
-import os
 import sys
 import json
-
-def list_files_recursive(path):
-    files = list()
-    for entry in os.listdir(path):
-        full_path = os.path.join(path, entry)
-        if os.path.isdir(full_path):
-            files.extend(list_files_recursive(full_path))
-        elif 'MSBNK-' in full_path and full_path.endswith('.txt'):
-                files.append(full_path)
-    return files
-
-
+import shutil
+from utils import list_files_recursive
 
 if __name__ == '__main__':
-    directory_path = sys.argv[1] 
-    files = list_files_recursive(directory_path)
-    
-    print(f'Total files: {len(files)}')
+    src_dir = sys.argv[1] 
+    out_dir = "results/" + src_dir
 
-    with open(f'{sys.argv[2]}', 'r') as f:
+    destination = shutil.copytree(src=src_dir, dst=out_dir, dirs_exist_ok=True)
+    print(destination) 
+    print(f'Copied files from {src_dir} to {out_dir}')
+
+    files = list_files_recursive(out_dir)        
+    mappings_json = sys.argv[2]
+
+    print(f'Total MassBank record files: {len(files)} in directory: {out_dir}')
+    print(f'Using mappings from: {mappings_json}')        
+
+    with open(f'{mappings_json}', 'r') as f:
         input_data = json.load(f)
          
         for i, file in enumerate(files):
             lines = list() 
-            print(f'Processing file {i + 1}/{len(files)} -> {file}')
+            # print(f'Processing file {i + 1}/{len(files)} -> {file}')
             with open(file, 'r') as f:
                 lines = f.readlines()
                 chemont_line_index = -1
@@ -41,10 +38,6 @@ if __name__ == '__main__':
                         last_chlink_line_index = j
                     elif line.startswith('CH$IUPAC:'):
                         iupac_line_index = j
-                # print(f'accession: {accession}')
-                # print(f'chemOntLineIndex: {chemOntLineIndex}')
-                # print(f'lastChLinkLineIndex: {lastChLinkLineIndex}')
-                # print(f'iupacLineIndex: {iupacLineIndex}')
 
                 if accession in input_data:
                     item = input_data[accession]
@@ -64,11 +57,7 @@ if __name__ == '__main__':
                                 chemont_id = item['class']['chemont_id']            
                                 if 'subclass' in item and item['subclass'] is not None:
                                     subclass_name = item['subclass']['name']
-                                    chemont_id = item['subclass']['chemont_id']
-                    # print(f'kingdom_name: {kingdom_name}')
-                    # print(f'superclass_name: {superclass_name}')
-                    # print(f'class_name: {class_name}')
-                    # print(f'subclass_name: {subclass_name}')
+                                    chemont_id = item['subclass']['chemont_id']                   
 
                     if chemont_id != "" and kingdom_name != "" and superclass_name != "":
                         mod_line = "CH$LINK: ChemOnt " + chemont_id + "; " + kingdom_name + "; " + superclass_name
@@ -87,19 +76,22 @@ if __name__ == '__main__':
                                 lines.insert(last_chlink_line_index + 1, mod_line)
                             elif iupac_line_index != -1:                               
                                 lines.insert(iupac_line_index + 1, mod_line)
-                    else:
-                        if chemont_line_index != -1:
-                            print(f'Accession {accession} -> no or insufficient classification data -> remove ChemOnt link')
-                            lines.pop(chemont_line_index)                    
-                else:
-                    if chemont_line_index != -1:
-                        print(f'Accession {accession} not found in input data -> remove ChemOnt link')
-                        lines.pop(chemont_line_index)
+                    # else:
+                    #     if chemont_line_index != -1:
+                    #         print(f'Accession {accession} -> no or insufficient classification data -> remove ChemOnt link')
+                    #         lines.pop(chemont_line_index)                    
+                # else:
+                #     if chemont_line_index != -1:
+                #         print(f'Accession {accession} not found in input data -> remove ChemOnt link')
+                #         lines.pop(chemont_line_index)
 
                 # write the lines back to the file
                 with open(file, 'w') as f:
                     f.writelines(lines)
-                print(f'File {file} updated successfully')     
+                # print(f'File {file} updated successfully')     
+
+
+    print(f'\n\n-> Finished updating {len(files)} files in {out_dir}')
                                 
            
 
