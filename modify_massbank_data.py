@@ -6,14 +6,26 @@ from utils import list_files_recursive
 if __name__ == '__main__':
     print('\n\n--> Starting modify_massbank_data.py ...\n\n')
 
+    if len(sys.argv) < 3:
+        print("Usage: python modify_massbank_data.py <src_dir> <copy_data[true/false]>\n\n")
+        sys.exit(1)
+
     src_dir = sys.argv[1] 
-    out_dir = "results/" + src_dir
+    copy_data_str = sys.argv[2]
 
-    print(f'Copying files from {src_dir} to {out_dir}')
-    shutil.copytree(src=src_dir, dst=out_dir, dirs_exist_ok=True)
-    print(f'Copied files!')
-
-    files = list_files_recursive(out_dir)        
+    if copy_data_str.lower() == 'true':
+        out_dir = "results/" + src_dir        
+        print(f'Copying files from {src_dir} to {out_dir} to not modify original data...')
+        shutil.copytree(src=src_dir, dst=out_dir, dirs_exist_ok=True)
+        print(f'Copied files!')        
+    elif copy_data_str.lower() == 'false':
+        out_dir = src_dir
+        print(f'Not copying files, using original source directory: {out_dir}')
+    else:
+        print("Invalid value for copy_data. Please use 'true' or 'false'.")
+        sys.exit(1)
+        
+    files = list_files_recursive(out_dir)   
     mappings_json = "results/mapping.json"
 
     print(f'Total MassBank record files: {len(files)} in directory: {out_dir}')
