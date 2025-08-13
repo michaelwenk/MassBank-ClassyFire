@@ -8,6 +8,12 @@ from utils import get_results, inchi_to_canonical_smiles, smiles_to_inchi_key, s
 if __name__ == '__main__':
     print('\n\n--> Starting request.py ...\n\n')
 
+    if len(sys.argv) < 2:
+        print("Usage: python request.py <waiting_time[seconds]>")
+        sys.exit(1)
+
+    waiting_time = int(sys.argv[1])
+
     # 1. Read TSV file
     df = pd.read_csv("results/query_list.tsv", sep='|', header=None)
     
@@ -56,8 +62,8 @@ if __name__ == '__main__':
         print(f'Query ID: {query_id}')
 
         # Simulate waiting for the results to be ready
-        print('Waiting for 10 seconds before fetching results...')        
-        time.sleep(10)
+        print(f'Waiting for {waiting_time} seconds before fetching results...')
+        time.sleep(waiting_time)
 
         # Fetch results for the current chunk
         print(f'Fetching results for chunk {i + 1}/{len(chunks)}')
