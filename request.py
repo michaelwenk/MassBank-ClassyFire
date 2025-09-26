@@ -55,22 +55,30 @@ if __name__ == '__main__':
     os.makedirs("results/intermediate_results", exist_ok=True)
 
     # 5. Submit each chunk to ClassyFire
+    query_ids = []
     for i, chunk in enumerate(chunks):
         print(f'\n\n-> Processing chunk {i + 1}/{len(chunks)}')
         compound = '\n'.join(chunk)
         query_id = structure_query(compound)
-        print(f'Query ID: {query_id}')
+        print(f'Query ID für Chunk {i + 1}: {query_id}')
+        query_ids.append(query_id)
+        # add sleep to prevent rate limit error
+        if i < len(chunks) - 1:
+            time.sleep(8)
 
-        # Simulate waiting for the results to be ready
-        print(f'Waiting for {waiting_time} seconds before fetching results...')
-        time.sleep(waiting_time)
+    # Simulate waiting for the results to be ready
+    print(f'Waiting for {waiting_time} seconds before fetching results...')
+    time.sleep(waiting_time)
 
-        # Fetch results for the current chunk
+    # Fetch results
+    for i, query_id in enumerate(query_ids):
         print(f'Fetching results for chunk {i + 1}/{len(chunks)}')
         result = get_results(query_id)
         with open(f'results/intermediate_results/chunk_{i + 1}_results.json', 'w') as f:
             f.write(result)
         print(f'Results for chunk {i + 1} saved to results/intermediate_results/chunk_{i + 1}_results.json')
+        if i < len(query_ids) - 1:
+            time.sleep(8)
 
        
     # 6. Process the results
