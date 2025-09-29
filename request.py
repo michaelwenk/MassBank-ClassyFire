@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import time
+import datetime
 import pandas as pd
 from utils import get_results, inchi_to_canonical_smiles, smiles_to_inchi_key, structure_query
 
@@ -67,13 +68,34 @@ if __name__ == '__main__':
             time.sleep(8)
 
     # Simulate waiting for the results to be ready
-    print(f'Waiting for {waiting_time} seconds before fetching results...')
-    time.sleep(waiting_time)
+    print(f'Waiting for {waiting_time} seconds, check every 300 seconds for results...')
+    interval = 300
+    start_time = datetime.datetime.now()
+    time.sleep(interval)
 
     # Fetch results
     for i, query_id in enumerate(query_ids):
-        print(f'Fetching results for chunk {i + 1}/{len(chunks)}')
-        result = get_results(query_id)
+        result = {}
+        elapsed = 0
+        while elapsed < waiting_time:
+            elapsed = (datetime.datetime.now() - start_time).total_seconds()
+            print(f'Elapsed time: {elapsed}s.')
+            response = None
+            try:
+                response = get_results(query_id)
+            except Exception as e:
+                print(f'Error fetching chunk {i + 1}: {e}')
+            if response:
+                data = json.loads(response)
+                status = data.get("classification_status")
+                if status == "Done":
+                    print(f'Result for chunk {i + 1} found.')
+                    result = response
+                else:
+                    print(f'Chunk {i + 1}: Status = {status}')
+            time.sleep(interval)
+            elapsed = (datetime.datetime.now() - start_time).total_seconds()
+
         with open(f'results/intermediate_results/chunk_{i + 1}_results.json', 'w') as f:
             f.write(result)
         print(f'Results for chunk {i + 1} saved to results/intermediate_results/chunk_{i + 1}_results.json')
