@@ -1,2 +1,3 @@
 pandas
 rdkit
+requests
