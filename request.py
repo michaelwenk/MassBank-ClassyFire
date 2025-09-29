@@ -69,35 +69,33 @@ if __name__ == '__main__':
 
     # Simulate waiting for the results to be ready
     print(f'Waiting for {waiting_time} seconds, check every 300 seconds for results...')
-    interval = 300
+    interval = 30
     start_time = datetime.datetime.now()
-    time.sleep(interval)
 
     # Fetch results
     for i, query_id in enumerate(query_ids):
+        response = "{}"
         result = {}
         elapsed = 0
         while elapsed < waiting_time:
+            time.sleep(interval)
             elapsed = (datetime.datetime.now() - start_time).total_seconds()
             print(f'Elapsed time: {elapsed}s.')
-            response = None
             try:
                 response = get_results(query_id)
             except Exception as e:
                 print(f'Error fetching chunk {i + 1}: {e}')
-            if response:
-                data = json.loads(response)
-                status = data.get("classification_status")
-                if status == "Done":
-                    print(f'Result for chunk {i + 1} found.')
-                    result = response
-                else:
-                    print(f'Chunk {i + 1}: Status = {status}')
-            time.sleep(interval)
-            elapsed = (datetime.datetime.now() - start_time).total_seconds()
+
+            result = json.loads(response)
+            status = result.get("classification_status")
+            if status == "Done":
+                print(f'Result for chunk {i + 1} found.')
+                break
+            else:
+                print(f'Chunk {i + 1}: Status = {status}')
 
         with open(f'results/intermediate_results/chunk_{i + 1}_results.json', 'w') as f:
-            f.write(result)
+            json.dump(result, f)
         print(f'Results for chunk {i + 1} saved to results/intermediate_results/chunk_{i + 1}_results.json')
         if i < len(query_ids) - 1:
             time.sleep(8)
