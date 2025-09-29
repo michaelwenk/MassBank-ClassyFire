@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     # Simulate waiting for the results to be ready
     print(f'Waiting for {waiting_time} seconds, check every 300 seconds for results...')
-    interval = 30
+    interval = 300
     start_time = datetime.datetime.now()
 
     # Fetch results
