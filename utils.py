@@ -51,6 +51,8 @@ def get_results(query_id, return_format="json"):
 def list_files_recursive(path):
     files = list()
     for entry in os.listdir(path):
+        if entry.startswith('.'):
+            continue
         full_path = os.path.join(path, entry)
         if os.path.isdir(full_path):
             files.extend(list_files_recursive(full_path))

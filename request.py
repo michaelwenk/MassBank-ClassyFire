@@ -49,7 +49,7 @@ if __name__ == '__main__':
     print(f'Total unique input SMILES: {len(smiles_input_list)}')
 
     # 4. Split into chunks
-    chunk_size = 50
+    chunk_size = 500
     chunks = [smiles_input_list[i:i + chunk_size] for i in range(0, len(smiles_input_list), chunk_size)]
     print(f'Total chunks: {len(chunks)}')   
 
